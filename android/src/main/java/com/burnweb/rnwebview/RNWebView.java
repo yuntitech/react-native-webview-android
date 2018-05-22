@@ -1,9 +1,8 @@
 package com.burnweb.rnwebview;
 
 import android.annotation.SuppressLint;
-
-import android.net.Uri;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Build;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
@@ -14,9 +13,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.SystemClock;
-import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.EventDispatcher;
@@ -35,7 +34,7 @@ class RNWebView extends WebView implements LifecycleEventListener {
     private String shouldOverrideUrlLoadingUrl = "";
 
     protected class EventWebClient extends WebViewClient {
-        public boolean shouldOverrideUrlLoading(WebView view, String url){
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
             int navigationType = 0;
 
             if (currentUrl.equals(url) || url.equals("about:blank")) { // for regular .reload() and html reload.
@@ -53,7 +52,7 @@ class RNWebView extends WebView implements LifecycleEventListener {
 
             currentUrl = url;
 
-            if(RNWebView.this.getInjectedJavaScript() != null) {
+            if (RNWebView.this.getInjectedJavaScript() != null) {
                 view.loadUrl("javascript:(function() {\n" + RNWebView.this.getInjectedJavaScript() + ";\n})();");
             }
         }
@@ -64,6 +63,13 @@ class RNWebView extends WebView implements LifecycleEventListener {
     }
 
     protected class CustomWebChromeClient extends WebChromeClient {
+
+        @Override
+        public void onProgressChanged(WebView view, int newProgress) {
+            super.onProgressChanged(view, newProgress);
+            mEventDispatcher.dispatchEvent(new ProgressEvent(view.getId(), newProgress));
+        }
+
         @Override
         public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
             getModule().showAlert(url, message, result);
@@ -185,12 +191,12 @@ class RNWebView extends WebView implements LifecycleEventListener {
 
     @Override
     public void onDetachedFromWindow() {
-        //this.loadDataWithBaseURL(this.getBaseUrl(), "<html></html>", "text/html", this.getCharset(), null);
+//        this.loadDataWithBaseURL(this.getBaseUrl(), "<html></html>", "text/html", this.getCharset(), null);
         super.onDetachedFromWindow();
     }
 
     @JavascriptInterface
-     public void postMessage(String jsParamaters) {
+    public void postMessage(String jsParamaters) {
         mEventDispatcher.dispatchEvent(new MessageEvent(getId(), jsParamaters));
     }
 }

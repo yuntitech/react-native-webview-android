@@ -1,17 +1,17 @@
 /**
  * @providesModule WebViewAndroid
  */
-"use strict";
+'use strict';
 
-var React = require("react");
-var RN = require("react-native");
-var createClass = require("create-react-class");
-var PropTypes = require("prop-types");
+var React = require('react');
+var RN = require('react-native');
+var createClass = require('create-react-class');
+var PropTypes = require('prop-types');
 
-var { requireNativeComponent, NativeModules } = require("react-native");
+var { requireNativeComponent, NativeModules } = require('react-native');
 var RCTUIManager = NativeModules.UIManager;
 
-var WEBVIEW_REF = "androidWebView";
+var WEBVIEW_REF = 'androidWebView';
 
 var WebViewAndroid = createClass({
   propTypes: {
@@ -30,7 +30,8 @@ var WebViewAndroid = createClass({
     builtInZoomControls: PropTypes.bool,
     onNavigationStateChange: PropTypes.func,
     onMessage: PropTypes.func,
-    onShouldStartLoadWithRequest: PropTypes.func,
+    onProgress: PropTypes.func,
+    onShouldStartLoadWithRequest: PropTypes.func
   },
   _onNavigationStateChange: function(event) {
     if (this.props.onNavigationStateChange) {
@@ -42,11 +43,18 @@ var WebViewAndroid = createClass({
       this.props.onMessage(event.nativeEvent);
     }
   },
+  _onProgress: function(event) {
+    if (this.props.onProgress) {
+      this.props.onProgress(event.nativeEvent);
+    }
+  },
   _onShouldOverrideUrlLoading: function(event) {
     let shouldOverride = false;
 
     if (this.props.onShouldStartLoadWithRequest) {
-      shouldOverride = !this.props.onShouldStartLoadWithRequest(event.nativeEvent);
+      shouldOverride = !this.props.onShouldStartLoadWithRequest(
+        event.nativeEvent
+      );
     }
 
     RCTUIManager.dispatchViewManagerCommand(
@@ -104,15 +112,16 @@ var WebViewAndroid = createClass({
         {...this.props}
         onNavigationStateChange={this._onNavigationStateChange}
         onMessageEvent={this._onMessage}
+        onProgressEvent={this._onProgress}
         onShouldOverrideUrlLoading={this._onShouldOverrideUrlLoading}
       />
     );
   },
   _getWebViewHandle: function() {
     return RN.findNodeHandle(this.refs[WEBVIEW_REF]);
-  },
+  }
 });
 
-var RNWebViewAndroid = requireNativeComponent("RNWebViewAndroid", null);
+var RNWebViewAndroid = requireNativeComponent('RNWebViewAndroid', null);
 
 module.exports = WebViewAndroid;
